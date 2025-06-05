@@ -1,0 +1,234 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
+#include <algorithm>
+
+using namespace std;
+
+vector<vector<string>> smartphones;
+
+void addSmartphone();
+void displaySmartphones();
+void editSmartphone();
+void deleteSmartphone();
+void bubbleSort(int field);
+void searchSmartphones();
+int getValidIndex(const string& prompt, int maxIndex);
+int menu();
+
+int main() {
+    int choice;
+    do {
+        choice = menu();
+        switch (choice) {
+            case 1: addSmartphone(); break;
+            case 2: displaySmartphones(); break;
+            case 3: editSmartphone(); break;
+            case 4: deleteSmartphone(); break;
+            case 5: {
+                cout << "\nSort by:\n";
+                cout << "0 - Smartphone Name\n1 - Capability\nChoose: ";
+                int field;
+                cin >> field;
+                cin.ignore();
+                if (field >= 0 && field <= 1) {
+                    bubbleSort(field);
+                    cout << "Smartphones sorted successfully.\n";
+                } else {
+                    cout << "Invalid choice.\n";
+                }
+                break;
+            }
+            case 6: searchSmartphones(); break;
+            case 0:
+                cout << "Exiting program.\n";
+                break;
+            default:
+                cout << "Invalid choice. Try again.\n";
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+
+
+int menu() {
+    cout << "\n===== Smartphone Record Management =====\n";
+    cout << "1. Add New Smartphone\n";
+    cout << "2. Display Smartphones\n";
+    cout << "3. Edit Smartphone\n";
+    cout << "4. Delete Smartphone\n";
+    cout << "5. Sort Smartphones (Bubble Sort)\n";
+    cout << "6. Search Smartphones\n";
+    cout << "0. Exit\n";
+    cout << "Enter choice: ";
+    int choice;
+    cin >> choice;
+    cin.ignore();
+    return choice;
+}
+
+void addSmartphone() {
+    string name, capability;
+
+    cout << "Enter Smartphone Name: ";
+    getline(cin, name);
+
+    
+    for (auto &s : smartphones) {
+        if (s[0] == name) {
+            cout << "Smartphone already exists.\n";
+            return;
+        }
+    }
+
+    cout << "Enter Capability (Budget Phone / Midrange Phone / Flagship Phone): ";
+    getline(cin, capability);
+
+    smartphones.push_back({name, capability});
+    cout << "Smartphone added successfully.\n";
+}
+
+
+void displaySmartphones() {
+    if (smartphones.empty()) {
+        cout << "No smartphone records to display.\n";
+        return;
+    }
+
+    cout << left << setw(25) << "Smartphone Name" << setw(20) << "Capability" << "\n";
+    cout << "-------------------------------------------------\n";
+
+    for (const auto& s : smartphones) {
+        cout << left << setw(25) << s[0] << setw(20) << s[1] << "\n";
+    }
+}
+
+void editSmartphone() {
+    if (smartphones.empty()) {
+        cout << "No smartphones to edit.\n";
+        return;
+    }
+
+    displaySmartphones();
+    int index = getValidIndex("Enter the smartphone number to edit (starting from 1): ", smartphones.size()) - 1;
+
+    cout << "Editing " << smartphones[index][0] << "\n";
+
+    string input;
+    cout << "Enter new Smartphone Name (or press enter to keep '" << smartphones[index][0] << "'): ";
+    getline(cin, input);
+    if (!input.empty()) {
+        
+        for (int i = 0; i < smartphones.size(); i++) {
+            if (i != index && smartphones[i][0] == input) {
+                cout << "Name already exists. Edit cancelled.\n";
+                return;
+            }
+        }
+        smartphones[index][0] = input;
+    }
+
+    cout << "Enter new Capability (or press enter to keep '" << smartphones[index][1] << "'): ";
+    getline(cin, input);
+    if (!input.empty()) {
+        smartphones[index][1] = input;
+    }
+
+    cout << "Smartphone updated.\n";
+}
+
+
+void deleteSmartphone() {
+    if (smartphones.empty()) {
+        cout << "No smartphones to delete.\n";
+        return;
+    }
+
+    displaySmartphones();
+    int index = getValidIndex("Enter the smartphone number to delete (starting from 1): ", smartphones.size()) - 1;
+
+    cout << "Deleting: " << smartphones[index][0] << "\n";
+    smartphones.erase(smartphones.begin() + index);
+    cout << "Smartphone deleted.\n";
+}
+
+void bubbleSort(int field) {
+    int n = smartphones.size();
+    for (int i = 0; i < n -1; i++) {
+        for (int j = 0; j < n - i -1; j++) {
+            string a = smartphones[j][field];
+            string b = smartphones[j+1][field];
+            transform(a.begin(), a.end(), a.begin(), ::tolower);
+            transform(b.begin(), b.end(), b.begin(), ::tolower);
+
+            if (a > b) {
+                swap(smartphones[j], smartphones[j+1]);
+            }
+        }
+    }
+}
+
+
+void searchSmartphones() {
+    if (smartphones.empty()) {
+        cout << "No smartphone records to search.\n";
+        return;
+    }
+
+    cout << "\nSearch by:\n";
+    cout << "1 - Smartphone Name\n2 - Capability\nChoose: ";
+    int field;
+    cin >> field;
+    cin.ignore();
+
+    if (field != 1 && field != 2) {
+        cout << "Invalid search field.\n";
+        return;
+    }
+
+    string keyword;
+    cout << "Enter search keyword: ";
+    getline(cin, keyword);
+
+    
+    transform(keyword.begin(), keyword.end(), keyword.begin(), ::tolower);
+
+    int matches = 0;
+    cout << "\nSearch Results:\n";
+    cout << left << setw(25) << "Smartphone Name" << setw(20) << "Capability" << "\n";
+    cout << "-------------------------------------------------\n";
+
+    for (const auto& s : smartphones) {
+        string value = s[field - 1];
+        string valueLower = value;
+        transform(valueLower.begin(), valueLower.end(), valueLower.begin(), ::tolower);
+
+        if (valueLower.find(keyword) != string::npos) {
+            cout << left << setw(25) << s[0] << setw(20) << s[1] << "\n";
+            matches++;
+        }
+    }
+
+    if (matches == 0) {
+        cout << "No matching smartphones found.\n";
+    }
+}
+
+
+int getValidIndex(const string& prompt, int maxIndex) {
+    int idx;
+    while (true) {
+        cout << prompt;
+        if (!(cin >> idx) || idx < 1 || idx > maxIndex) {
+            cout << "Invalid input, try again.\n";
+            cin.clear();
+            cin.ignore(10000, '\n');
+        } else {
+            cin.ignore();
+            break;
+        }
+    }
+    return idx;
+}
